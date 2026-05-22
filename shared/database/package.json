@@ -1,12 +1,16 @@
 {
   "name": "@britespot/database",
   "version": "1.0.0",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "prisma generate --schema=./schema.prisma && tsc"
+  },
   "dependencies": {
     "@prisma/client": "^5.10.2"
   },
   "devDependencies": {
-    "prisma": "^5.10.2"
+    "prisma": "^5.10.2",
+    "typescript": "^5.0.0"
   }
 }
