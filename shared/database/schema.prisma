@@ -107,6 +107,8 @@ model Payment {
   transactionType String  // STK_PUSH, C2B
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+  commission     Commission?
 }
 
 model Wallet {
@@ -124,6 +126,7 @@ model Commission {
   vendorId       String
   vendor         Vendor   @relation(fields: [vendorId], references: [id])
   paymentId      String   @unique
+  payment        Payment  @relation(fields: [paymentId], references: [id])
   amount         Float
   britespotAmount Float
   vendorAmount   Float
