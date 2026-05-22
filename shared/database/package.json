@@ -1,0 +1,12 @@
+{
+  "name": "@britespot/database",
+  "version": "1.0.0",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "dependencies": {
+    "@prisma/client": "^5.10.2"
+  },
+  "devDependencies": {
+    "prisma": "^5.10.2"
+  }
+}

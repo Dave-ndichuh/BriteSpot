@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: britespot
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  freeradius:
+    image: freeradius/freeradius-server:latest
+    ports:
+      - "1812:1812/udp"
+      - "1813:1813/udp"
+    environment:
+      - RADIUS_DB_HOST=postgres
+      - RADIUS_DB_PORT=5432
+      - RADIUS_DB_USER=postgres
+      - RADIUS_DB_PASS=password
+      - RADIUS_DB_NAME=britespot
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

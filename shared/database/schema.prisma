@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Vendor {
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  tenantId    String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       VendorUser[]
+  routers     Router[]
+  packages    Package[]
+  customers   Customer[]
+  payments    Payment[]
+  wallets     Wallet?
+  commissions Commission[]
+  vouchers    Voucher[]
+}
+
+model VendorUser {
+  id        String   @id @default(uuid())
+  vendorId  String
+  vendor    Vendor   @relation(fields: [vendorId], references: [id])
+  name      String
+  email     String   @unique
+  password  String
+  role      String   // SUPER_ADMIN, VENDOR_ADMIN, VENDOR_STAFF
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Router {
+  id        String   @id @default(uuid())
+  vendorId  String
+  vendor    Vendor   @relation(fields: [vendorId], references: [id])
+  name      String
+  ipAddress String
+  macAddress String?
+  apiUsername String
+  apiPassword String
+  status    String   // ONLINE, OFFLINE
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Package {
+  id             String   @id @default(uuid())
+  vendorId       String
+  vendor         Vendor   @relation(fields: [vendorId], references: [id])
+  name           String
+  price          Float
+  speedLimit     String   // e.g., "5M/5M"
+  durationMinutes Int
+  dataLimit      Float?   // In MB, null if unlimited
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  vendorId  String
+  vendor    Vendor   @relation(fields: [vendorId], references: [id])
+  phone     String
+  macAddress String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  sessions  Session[]
+  payments  Payment[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  vendorId  String
+  customerId String
+  customer  Customer @relation(fields: [customerId], references: [id])
+  routerMac String
+  deviceMac String
+  ipAddress String
+  startTime DateTime @default(now())
+  endTime   DateTime?
+  dataUsed  Float    @default(0) // In MB
+  status    String   // ACTIVE, EXPIRED, TERMINATED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Payment {
+  id             String   @id @default(uuid())
+  vendorId       String
+  vendor         Vendor   @relation(fields: [vendorId], references: [id])
+  customerId     String
+  customer       Customer @relation(fields: [customerId], references: [id])
+  amount         Float
+  currency       String   @default("KES")
+  mpesaReceipt   String?  @unique
+  status         String   // PENDING, SUCCESS, FAILED
+  transactionType String  // STK_PUSH, C2B
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Wallet {
+  id             String   @id @default(uuid())
+  vendorId       String   @unique
+  vendor         Vendor   @relation(fields: [vendorId], references: [id])
+  availableBalance Float  @default(0)
+  pendingBalance   Float  @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Commission {
+  id             String   @id @default(uuid())
+  vendorId       String
+  vendor         Vendor   @relation(fields: [vendorId], references: [id])
+  paymentId      String   @unique
+  amount         Float
+  britespotAmount Float
+  vendorAmount   Float
+  status         String   // PENDING, SETTLED
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Voucher {
+  id        String   @id @default(uuid())
+  vendorId  String
+  vendor    Vendor   @relation(fields: [vendorId], references: [id])
+  packageId String
+  code      String   @unique
+  used      Boolean  @default(false)
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
